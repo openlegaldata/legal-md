@@ -44,17 +44,13 @@ class SpecialLinksTreeprocessor(Treeprocessor):
                 raise ValueError('Query parameters cannot be arrays.')
 
             val = val[0]
-
             elem.set(key, val)
 
-            print('Sets: %s = %s' % (key, val))
 
         elem.tag = 'em'
         del elem.attrib['href']
 
         elem.set('class', 'match js-match')
-
-        return elem
 
     def run(self, doc):
         # Iterate over all elements in doc tree
@@ -66,7 +62,7 @@ class SpecialLinksTreeprocessor(Treeprocessor):
 
                 # Check protocols
                 if href.startswith('match://'):
-                    return self.handle_match(elem, href)
+                    self.handle_match(elem, href)
 
                 elif href.startswith('ecli://'):
                     raise NotImplementedError('Case refs are not implemented')

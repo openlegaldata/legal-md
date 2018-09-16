@@ -35,11 +35,12 @@ setup(
     author_email='hello@openlegaldata.io',
     packages=find_packages(),
     install_requires=[
-        'Markdown',
+        'Markdown==2.6.11',
+        'lxml==3.7.3',
+        'beautifulsoup4==4.6.0',
     ],
     include_package_data=True,
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
