@@ -25,7 +25,7 @@ def find_version(*file_paths):
 
 
 setup(
-    name="legal_md",
+    name="legal-md",
     version=find_version("legal_md", "__init__.py"),
     url='https://github.com/openlegaldata/legal-md',
     license='MIT',
