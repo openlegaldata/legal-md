@@ -1,3 +1,4 @@
+import logging
 import re
 
 from bs4 import BeautifulSoup
@@ -12,6 +13,8 @@ TD_LINE_CONTENT_CLASS = 'line-content'
 
 PLACEHOLDER_BEGIN = '{{{{{'
 PLACEHOLDER_END = '}}}}}'
+
+logger = logging.getLogger(__name__)
 
 
 class LineNumberExtension(Extension):
@@ -85,7 +88,10 @@ class LineNumberPostprocessor(Postprocessor):
         out_lines = []
         last_with_line_no = False
         last_line_no = 0
-        lines = text.split('\n')
+        lines = text.splitlines()
+
+        # print('Post lines: %s' % lines)
+
         for i, line in enumerate(lines):
             is_last_line = i == len(lines) - 1
 
@@ -152,7 +158,11 @@ class LineNumberPostprocessor(Postprocessor):
 
             out_lines.append(line)
 
-        return '\n'.join(out_lines)
+        out_str = '\n'.join(out_lines)
+
+        # print('Output lines: %s' % out_str)
+
+        return out_str
 
 
 class LineNumberPreprocessor(Preprocessor):
@@ -168,73 +178,24 @@ class LineNumberPreprocessor(Preprocessor):
         ln_marker_close = PLACEHOLDER_BEGIN + '/' + PLACEHOLDER_END
         ln_with_marker = []  # store index of lines with number
 
+        # print('Input lines: %s' % lines)
+
         for i, line in enumerate(lines):
             match = re.search(pattern, line)
 
             if match:  # If line marker found
                 line_content = match.group(2)
+
+                # Replace line breaks regardless of the OS
+                line_content = line_content.replace('\r', '').replace('\n', '')
+
                 ln_marker = PLACEHOLDER_BEGIN + match.group(1) + PLACEHOLDER_END
 
                 # Write marker at the end of line
                 lines[i] = line_content + ln_marker + ln_marker_close
                 ln_with_marker.append(i)
 
-        # print('\n'.join(lines) + '\n-------------------')
-
         return lines
-
-    def _run(self, lines):
-        """Process line number marks."""
-
-        # Find and process critic marks
-        # text = '\n'.join(lines)
-        out_lines = []
-        pattern = r'^([0-9]+|#|:)\|\s(.*)$'
-        found_ln_marker = False
-        ln_marker_close = None
-
-        for i, l in enumerate(lines):
-            is_last_line = i == len(lines) - 1
-            # print('PRE: %s' % l)
-            match = re.search(pattern, l)
-            if match:
-                # print('found LN')
-                line_content = match.group(2)
-                ln_marker = PLACEHOLDER_BEGIN + match.group(1) + PLACEHOLDER_END
-                ln_marker_close = PLACEHOLDER_BEGIN + '/' + PLACEHOLDER_END
-
-                if is_last_line:
-                    # last line, set closing marker
-                    l = line_content + ln_marker + ln_marker_close
-                    ln_marker_close = None
-                else:
-                    # not last line
-                    if lines[i + 1].strip() == '':
-                        # next line is empty
-                        l = line_content + ln_marker + ln_marker_close
-                        ln_marker_close = None
-                    else:
-                        # next line is not empty, write marker to end of the line which next lines is empty
-                        l = line_content + ln_marker
-                        pass
-                    pass
-            else:
-                if ln_marker_close is not None:
-                    if is_last_line:
-                        # Set close marker if is last line
-                        l = l + ln_marker_close
-                        ln_marker_close = None
-                    else:
-                        # Set close marker if next line is empty
-                        if lines[i + 1].strip() == '':
-                            l = l + ln_marker_close
-                            ln_marker_close = None
-                        else:
-                            pass
-
-            out_lines.append(l)
-
-        return out_lines
 
 
 def makeExtension(**kwargs):  # pragma: no cover
